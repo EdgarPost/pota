@@ -1,11 +1,13 @@
 import { readdir } from 'fs/promises';
 import { basename, extname, join, resolve } from 'path';
+import { createRequire } from 'module';
 
 import { isString } from 'isntnt';
 import MiniCSSExtractPlugin from 'mini-css-extract-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import historyApiFallback from 'connect-history-api-fallback';
 import { createMockMiddleware } from '@mediamonks/monck';
+
 // @ts-expect-error
 import jsonImporter from 'node-sass-json-importer';
 
@@ -21,6 +23,8 @@ import { paths } from './paths.js';
 import MubanPagePlugin from './webpack/plugins/MubanPagePlugin.js';
 import EmitMockMainPlugin from './webpack/plugins/EmitMockMainPlugin.js';
 import CopyEmittedAssetsPlugin from './webpack/plugins/CopyEmittedAssetsPlugin.js';
+
+const require = createRequire(import.meta.url);
 
 function createFindPlugin(plugins: ReadonlyArray<WebpackPluginInstance>) {
   return (name: string) => plugins.find((plugin) => plugin.constructor.name === name);
@@ -148,6 +152,42 @@ export class MubanWebpackConfig extends WebpackConfig<MubanWebpackConfigOptions>
     return [
       {
         oneOf: [
+          {
+            test: /\.twig$/,
+            use: [
+              {
+                // TODO: does not work, because it's ESM :(
+                // loader: require.resolve('./webpack/loaders/twing-loader/index.js'),
+                // TODO: does not work with some local modifications
+                loader: 'twing-loader',
+                options: {
+                  // TODO: this file should be manually added into the `lib` folder
+                  //  since TS always converts it to ESM and `.js`
+                  //
+                  // ```
+                  //   const { TwingEnvironment, TwingLoaderRelativeFilesystem } = require('twing');
+                  //
+                  //   module.exports = new TwingEnvironment(
+                  //     new TwingLoaderRelativeFilesystem()
+                  //   );
+                  // ```
+                  // but even passing the path to that file, somehow the requiring in the twing-loader doesn't work
+                  // it will always return undefined for:
+                  // `const env = require('${slash(environmentModulePath)}');`
+                  //
+                  // I have it patched to:
+                  // ```
+                  //   let parts = [
+                  //      `const { TwingEnvironment, TwingLoaderRelativeFilesystem } = require('twing');`
+                  //   ];
+                  //   parts.push(`const env = new TwingEnvironment(new TwingLoaderRelativeFilesystem());`);
+                  // ```
+                  //
+                  environmentModulePath: require.resolve('./twigEnvironment.cjs')
+                }
+              }
+            ]
+          },
           this.jsRule,
           this.tsRule,
           this.imageRule,
