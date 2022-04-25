@@ -158,8 +158,8 @@ export class MubanWebpackConfig extends WebpackConfig<MubanWebpackConfigOptions>
               {
                 loader: '@mediamonks/twing-loader',
                 options: {
-                  environmentModulePathLoader: require.resolve('./twigEnvironment.cjs'),
-                  environmentModulePathContent: require.resolve('./twigEnvironment.js')
+                  environmentModulePathLoader: require.resolve('../twigEnvironment.cjs'),
+                  environmentModulePathContent: require.resolve('../twigEnvironment.js')
                 }
               }
             ]
