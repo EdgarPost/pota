@@ -156,34 +156,10 @@ export class MubanWebpackConfig extends WebpackConfig<MubanWebpackConfigOptions>
             test: /\.twig$/,
             use: [
               {
-                // TODO: does not work, because it's ESM :(
-                // loader: require.resolve('./webpack/loaders/twing-loader/index.js'),
-                // TODO: does not work with some local modifications
-                loader: 'twing-loader',
+                loader: '@mediamonks/twing-loader',
                 options: {
-                  // TODO: this file should be manually added into the `lib` folder
-                  //  since TS always converts it to ESM and `.js`
-                  //
-                  // ```
-                  //   const { TwingEnvironment, TwingLoaderRelativeFilesystem } = require('twing');
-                  //
-                  //   module.exports = new TwingEnvironment(
-                  //     new TwingLoaderRelativeFilesystem()
-                  //   );
-                  // ```
-                  // but even passing the path to that file, somehow the requiring in the twing-loader doesn't work
-                  // it will always return undefined for:
-                  // `const env = require('${slash(environmentModulePath)}');`
-                  //
-                  // I have it patched to:
-                  // ```
-                  //   let parts = [
-                  //      `const { TwingEnvironment, TwingLoaderRelativeFilesystem } = require('twing');`
-                  //   ];
-                  //   parts.push(`const env = new TwingEnvironment(new TwingLoaderRelativeFilesystem());`);
-                  // ```
-                  //
-                  environmentModulePath: require.resolve('./twigEnvironment.cjs')
+                  environmentModulePathLoader: require.resolve('./twigEnvironment.cjs'),
+                  environmentModulePathContent: require.resolve('./twigEnvironment.js')
                 }
               }
             ]
